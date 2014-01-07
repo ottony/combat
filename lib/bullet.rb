@@ -36,9 +36,8 @@ class Bullet
   end
   
   def destroy_tanks(tanks, owner)
-    tanks.reject! {|tank|
+    tanks.reject! do |tank|
       Gosu::distance(@x, @y, tank.x, tank.y) < 6 and tank != owner
-        
-    }
+    end
   end
 end

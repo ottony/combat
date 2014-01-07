@@ -37,41 +37,16 @@ class Combat < Gosu::Window
     super WIDTH, HEIGHT, false
     self.caption = "Combat!"
     
-    @logo_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
-    @menu_font = Gosu::Font.new(self, Gosu::default_font_name, 30)
-    @pause_font = Gosu::Font.new(self, Gosu::default_font_name, 40)
-    
-    @scale = 1
-    @tanks = []
-    10.times do |i|
-      make_new_tank(Gosu::Color.new(255, rand(0..255), rand(0..255), rand(0..255)))
-    end
-    
-    @experiment_initial_time = Gosu::milliseconds
-    @ticks = 0
-    @cells = []
-    
-    (0..HEIGHT/CELLHEIGHT).each do |y|
-      (0..WIDTH/CELLWIDTH).each do |x|
-        @cells << Cell.new(CELLWIDTH*x, CELLHEIGHT*y)
-      end
-    end
-    
-    @paused = false
-    @menu = true
-    @menu_position = 0
-  
+    start_constants
   end
-  
+
   def update
     
     unless @paused || @menu
-    
       @tanks.each do |tank|
         tank.kills += 1 if kill_tanks(tank)
         tank.update
       end
-      
     end
     
     @ticks+=1
@@ -101,7 +76,8 @@ class Combat < Gosu::Window
       when Gosu::KbDown then toggle_menu_position
       when Gosu::KbUp   then toggle_menu_position
       when Gosu::KbReturn
-        @menu_position == 0 ? @menu = false : close
+        close if @menu_position == 1
+        @menu = false
       when Gosu::KbEscape then close
       else
       end
@@ -114,7 +90,7 @@ class Combat < Gosu::Window
         @scale += 1 if @scale < 5
       when Gosu::KbNumpadSubtract
         @scale -= 1 if @scale > 1
-      when Gosu::KbSpace  then 5.times {make_new_tank(random_color)}
+      when Gosu::KbSpace  then make_randons_tank(5) 
       when Gosu::KbEscape then @menu = true
       end
     end
@@ -122,13 +98,36 @@ class Combat < Gosu::Window
   
   private
   
+  def start_constants
+    @logo_font = Gosu::Font.new(self, Gosu::default_font_name, 100)
+    @menu_font = Gosu::Font.new(self, Gosu::default_font_name, 30)
+    @pause_font = Gosu::Font.new(self, Gosu::default_font_name, 40)
+
+    @scale = 1
+    @tanks = []
+    make_randons_tank(10)
+
+    @experiment_initial_time = Gosu::milliseconds
+    @ticks = 0
+    @cells = []
+
+    (0..HEIGHT/CELLHEIGHT).each do |y|
+      (0..WIDTH/CELLWIDTH).each do |x|
+        @cells << Cell.new(CELLWIDTH*x, CELLHEIGHT*y)
+      end
+    end
+
+    @paused = false
+    @menu = true
+    @menu_position = 0
+
+  end
+
   def restart
     @scale = 1
     @tanks = []
-    10.times do |i|
-      make_new_tank(Gosu::Color.new(255, rand(0..255), rand(0..255), rand(0..255)))
-    end
-    
+    make_randons_tank(10)
+
     @experiment_initial_time = Gosu::milliseconds
     @ticks = 0
     
@@ -136,6 +135,12 @@ class Combat < Gosu::Window
   
   def toggle_menu_position
     @menu_position = (@menu_position + 1) % 2
+  end
+
+  def make_randons_tank(amount)
+    amount.times do |i|
+      make_new_tank(random_color)
+    end
   end
   
   def make_new_tank(color)
@@ -212,14 +217,9 @@ class Combat < Gosu::Window
   end
   
   def draw_tanks
-  
     @tanks.each do |tank|
       tank.draw
-      tank.bullets.each do |bullet|
-        bullet.draw
-      end
     end
-
   end
   
   def pause_screen
